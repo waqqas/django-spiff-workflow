@@ -16,4 +16,4 @@ INSTALLED_APPS = (
 
 ### More documentation
 
-For more information check the documentation of [`spiff-workflow` doc]https://spiffworkflow.readthedocs.io/en/latest/index.html).
+For more information check the documentation of [`spiff-workflow` doc](https://spiffworkflow.readthedocs.io/en/latest/index.html).
