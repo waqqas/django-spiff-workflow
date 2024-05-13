@@ -11,7 +11,7 @@ setup(
     license="MIT",
     install_requires=[
         "Django>=4.0",
-        "spiffworkflow>=^3.0.0"
+        "spiffworkflow>=3.0.0"
     ],
     python_requires='>=3.9',
     classifiers=[
