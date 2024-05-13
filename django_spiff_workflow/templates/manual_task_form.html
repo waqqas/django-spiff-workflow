@@ -1,0 +1,8 @@
+{% load crispy_forms_tags %}
+<form method="post" action="{% url 'workflow:run' workflow.id task.id %}">
+    <div class="mb-3 text-center">
+        {% csrf_token %}
+        {{ form | crispy }}
+        <button type="submit" class="btn btn-danger">Continue</button>
+    </div>
+</form>
