@@ -2,13 +2,14 @@ from setuptools import find_packages, setup
 
 setup(
     name="django-spiff-workflow",
-    version="0.1.1",
+    version="0.1.3",
     packages=find_packages(),
     description="Django integration with spiff workflow library",
     author="Waqqas Jabbar",
     author_email="waqqas.jabbar@egmail.com",
     url="https://github.com/waqqas/django-spiff-workflow",
     license="MIT",
+    package_data={'': ['**/*.html']},
     install_requires=[
         "Django>=4.0",
         "spiffworkflow>=3.0.0"
