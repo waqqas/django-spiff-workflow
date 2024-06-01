@@ -1,0 +1,66 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        name: Trim Trailing Whitespace
+        description: This hook trims trailing whitespace.
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+        description: Forces to replace line ending by the UNIX 'lf' character.
+      - id: check-added-large-files
+        args: ["--maxkb=3000"]
+      - id: no-commit-to-branch
+        args: [--branch, master]
+      - id: check-yaml
+        files: .*\.(yaml|yml)$
+      - id: check-json
+        exclude: '(\.devcontainer|\.vscode)/.*'
+      - id: pretty-format-json
+        exclude: '(\.devcontainer|\.vscode)/.*'
+        args: ["--no-sort-keys", "--autofix"]
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ["--profile", "black"]
+        name: Sort python imports
+        description: This hook sorts python file imports.
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
+        name: Auto-format .py files
+        description: This hook auto-formats staged python files according to pep8 standard.
+  # - repo: https://github.com/djlint/djLint
+  #   rev: v1.34.1
+  #   hooks:
+  #     - id: djlint
+  #       args:
+  #         ["--reformat", "--lint", "--quiet", "--configuration", ".djlintrc"]
+  - repo: local
+    hooks:
+      - id: bpmnlint
+        name: Lint BPMN files
+        entry: bpmnlint
+        language: system
+        pass_filenames: true
+        files: '^.+\.bpmn$'
+      - id: dmn
+        name: Lint DMN files
+        entry: dmnlint
+        language: system
+        pass_filenames: true
+        files: '^.+\.dmn$'
+  - repo: https://github.com/PyCQA/autoflake
+    rev: v2.3.1
+    hooks:
+      - id: autoflake
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
+        files: \.(js|ts|jsx|tsx|css|less|markdown|md|yaml|yml)$
