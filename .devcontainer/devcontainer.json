@@ -21,6 +21,13 @@
 				"GitHub.vscode-github-actions"
 			]
 		}
+	},
+	"features": {
+		"ghcr.io/waqqas/feature/bpmnlint:1": {},
+		"ghcr.io/waqqas/feature/dmnlint:1": {},
+		"ghcr.io/devcontainers-contrib/features/black:2": {},
+		"ghcr.io/devcontainers-contrib/features/flake8:2": {},
+		"ghcr.io/devcontainers-contrib/features/pre-commit:2": {}
 	}
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
 	// "remoteUser": "root"
