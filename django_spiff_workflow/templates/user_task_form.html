@@ -7,12 +7,12 @@
     <div class="card">
         <div class="card-body">
             {% for field in form %}
-                {% if forloop.counter0|divisibleby:2 %}<div class="form-group row">{% endif %}
-                    <div class="col-lg-6" bis_skin_checked="1">
+                {% if forloop.counter0|divisibleby:3 %}<div class="form-group row">{% endif %}
+                    <div class="col-lg-4" bis_skin_checked="1">
                         {{ field|as_crispy_field }}
                         {% if field.errors %}<div>{{ field.errors }}</div>{% endif %}
                     </div>
-                    {% if forloop.counter0|add:1|divisibleby:2 %}</div>{% endif %}
+                    {% if forloop.counter0|add:1|divisibleby:3 %}</div>{% endif %}
             {% endfor %}
             <div class="form-group row">
                 <button type="submit" class="btn btn-danger">Submit</button>
