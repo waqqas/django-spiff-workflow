@@ -2,19 +2,16 @@ from setuptools import find_packages, setup
 
 setup(
     name="django-spiff-workflow",
-    version="0.1.3",
+    version="0.1.4",
     packages=find_packages(),
     description="Django integration with spiff workflow library",
     author="Waqqas Jabbar",
     author_email="waqqas.jabbar@egmail.com",
     url="https://github.com/waqqas/django-spiff-workflow",
     license="MIT",
-    package_data={'': ['**/*.html']},
-    install_requires=[
-        "Django>=4.0",
-        "spiffworkflow>=3.0.0"
-    ],
-    python_requires='>=3.9',
+    package_data={"": ["**/*.html"]},
+    install_requires=["Django>=4.0", "spiffworkflow>=3.0.0"],
+    python_requires=">=3.9",
     classifiers=[
         "Development Status :: 4 - Beta",
         "Environment :: Web Environment",
@@ -32,5 +29,13 @@ setup(
     zip_safe=False,
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    keywords=["django", "spiff", "workflow", "bpmn", "dmn", "bpmn2", "business process management"],
+    keywords=[
+        "django",
+        "spiff",
+        "workflow",
+        "bpmn",
+        "dmn",
+        "bpmn2",
+        "business process management",
+    ],
 )
