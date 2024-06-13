@@ -155,6 +155,9 @@ class UserTaskForm(forms.Form):
 
             self.fields[prop_name] = field
 
+        for field in self.fields.values():
+            field.required = False
+
         # Set required fields
         for required_field in schema.get("required", []):
             self.fields[required_field].required = True
