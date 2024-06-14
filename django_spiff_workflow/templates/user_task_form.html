@@ -3,6 +3,19 @@
 {% block extrastyle %}
     <link rel="stylesheet"type="text/css" href="{% static 'css/user_task_form.css' %}" />
 {% endblock extrastyle %}
+<<<<<<< HEAD
+=======
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet"
+          type="text/css"
+          href="{% static 'css/user_task_form.css' %}" />
+</head>
+<body>
+>>>>>>> origin/form-styling
+>>>>>>> origin/form-styling
     <form method="post" action="{% url 'workflow:run' workflow.id task.id %}" class="needs-validation">
         {% csrf_token %}
         <div class="card">
@@ -20,7 +33,6 @@
                 <div class="form-group row">
                     <button type="submit" class="btn btn-danger">Submit</button>
                 </div>
-
         </div>
     </form>
 
