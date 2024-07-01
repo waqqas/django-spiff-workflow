@@ -1,41 +1,28 @@
 {% load crispy_forms_tags %}
 {% load static %}
-<<<<<<< HEAD
 {% block extrastyle %}
-    <link rel="stylesheet"type="text/css" href="{% static 'css/user_task_form.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/user_task_form.css' %}" />
 {% endblock extrastyle %}
-=======
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet"
-          type="text/css"
-          href="{% static 'css/user_task_form.css' %}" />
-  
-</head>
-<body>
->>>>>>> origin/form-styling
-    <form method="post" action="{% url 'workflow:run' workflow.id task.id %}" class="needs-validation">
-        {% csrf_token %}
-        <div class="card">
-            <div class="card-body">
-                <div class="form-container">
-                    {% for field in form %}
-                        <div class="form-column" bis_skin_checked="1">
-                            <div class="form-group">
-                                {{ field|as_crispy_field }}
-                                {% if field.errors %}<div class="field-errors">{{ field.errors }}</div>{% endif %}
-                            </div>
+<div class="print-content">
+    <button type="button" class="btn btn-secondary" onclick="window.print()">Print Form</button>
+</div>
+<form method="post" action="{% url 'workflow:run' workflow.id task.id %}" class="needs-validation">
+    {% csrf_token %}
+    <div class="card">
+        <div class="card-body">
+            <div class="form-container">
+                {% for field in form %}
+                    <div class="form-column" bis_skin_checked="1">
+                        <div class="form-group">
+                            {{ field|as_crispy_field }}
+                            {% if field.errors %}<div class="field-errors">{{ field.errors }}</div>{% endif %}
                         </div>
-                    {% endfor %}
-                </div>
-                <div class="form-group row">
-                    <button type="submit" class="btn btn-danger">Submit</button>
-                </div>
-
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="form-group row">
+                <button type="submit" class="btn btn-danger">Submit</button>
+            </div>
         </div>
-    </form>
-
-
+    </div>
+</form>

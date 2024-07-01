@@ -117,3 +117,37 @@ button.btn.btn-danger:active {
         /* One column on smallest screens */
     }
 }
+
+@media print {
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    .print-content {
+        position: absolute;
+        top: 0;
+        right: 0;
+        padding: 10px;
+    }
+
+    .form-container {
+        display: none;
+    }
+
+    .form-group {
+        display: none;
+    }
+
+    .row {
+        display: none;
+    }
+
+    .card {
+        display: none;
+    }
+
+    .print-content {
+        display: none;
+    }
+}
