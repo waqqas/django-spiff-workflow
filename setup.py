@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="django-spiff-workflow",
-    version="0.1.5",
+    version="0.1.6",
     packages=find_packages(),
     description="Django integration with spiff workflow library",
     author="Waqqas Jabbar",
