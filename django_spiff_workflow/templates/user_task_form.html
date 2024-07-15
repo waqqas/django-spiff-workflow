@@ -1,7 +1,7 @@
 {% load crispy_forms_tags %}
 {% load static %}
 {% block extrastyle %}
-    <link rel="stylesheet"type="text/css" href="{% static 'css/user_task_form.css' %}" />
+    <link rel="stylesheet"type="text/css" href="{ % static 'css/user_task_form.css' % }" />
 {% endblock extrastyle %}
     <form method="post" action="{% url 'workflow:run' workflow.id task.id %}" class="needs-validation">
         {% csrf_token %}
@@ -20,7 +20,6 @@
                 <div class="form-group row">
                     <button type="submit" class="btn btn-danger">Submit</button>
                 </div>
+            </div>
         </div>
     </form>
-
-
