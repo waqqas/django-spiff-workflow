@@ -1,25 +1,77 @@
 {% load crispy_forms_tags %}
 {% load static %}
 {% block extrastyle %}
-    <link rel="stylesheet"type="text/css" href="{ % static 'css/user_task_form.css' % }" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/user_task_form.css' %}" />
 {% endblock extrastyle %}
-    <form method="post" action="{% url 'workflow:run' workflow.id task.id %}" class="needs-validation">
-        {% csrf_token %}
-        <div class="card">
-            <div class="card-body">
-                <div class="form-container">
-                    {% for field in form %}
-                        <div class="form-column" bis_skin_checked="1">
-                            <div class="form-group">
-                                {{ field|as_crispy_field }}
-                                {% if field.errors %}<div class="field-errors">{{ field.errors }}</div>{% endif %}
-                            </div>
+<div class="print-content">
+    <button type="button" class="btn btn-secondary" onclick="window.print()">Print Form</button>
+</div>
+<form id="taskForm" method="post" action="{% url 'workflow:run' workflow.id task.id %}" class="needs-validation">
+    {% csrf_token %}
+    <div class="card">
+        <div class="card-body">
+            <div class="form-row">
+                {% for field in form %}
+                    <div class="col-md-4 mb-3">
+                        <div class="form-group">
+                            {{ field|as_crispy_field }}
+                            {% if field.errors %}<div class="field-errors">{{ field.errors }}</div>{% endif %}
                         </div>
-                    {% endfor %}
-                </div>
-                <div class="form-group row">
-                    <button type="submit" class="btn btn-danger">Submit</button>
-                </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="button-container">
+                <button type="submit" class="btn btn-danger">Submit</button>
+                {% for event in task.signal_boundary_events %}
+                    {% if event.task_id == task.id %}
+                        <button type="button" class="btn btn-primary" onclick="fireSignal('{{ event.button_label }}', '{{ workflow.id }}')">{{ event.button_label }}</button>
+                    {% endif %}
+                {% endfor %}
             </div>
         </div>
-    </form>
+    </div>
+</form>
+
+<script>
+function fireSignal(buttonLabel, workflowId) {
+    const url = "{% url 'workflow:trigger_signal' %}";
+    const csrfToken = '{{ csrf_token }}';
+    let signal = '';
+
+    if (buttonLabel === 'Edit') {
+        signal = 'edit_manual_form';
+    } else if (buttonLabel === 'Reject') {
+        signal = 'reject_iv_admin';
+    } else {
+        signal = buttonLabel; // Default case if more signals need to be handled
+    }
+
+    const requestData = {
+        workflow_id: workflowId,
+        button_label: signal
+    };
+
+    console.log('Request Data:', requestData);
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestData)
+    }).then(response => {
+        if (response.ok) {
+            document.getElementById('taskForm').submit();
+        } else {
+            response.json().then(data => {
+                alert('Error sending signal: ' + data.message);
+            });
+        }
+    }).catch(error => {
+        console.error('Error:', error);
+        alert('Error sending signal.');
+    });
+}
+</script>

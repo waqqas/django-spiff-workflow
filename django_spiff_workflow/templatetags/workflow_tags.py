@@ -23,7 +23,25 @@ def markdown(value, extensions=["markdown.extensions.fenced_code"]):
 
 
 @register.simple_tag(takes_context=True)
-def user_task_form(context, **kwargs):
+def user_task_form(context, workflow, task, form, **kwargs):
+    # Get signal boundary events with button labels
+    signal_buttons = task.signal_boundary_events
+
+    # Log or print the task data for debugging
+    print(
+        f"Task ID: {task.id}, Task Name: {task.spec_name}, signal_buttons: {signal_buttons}"
+    )
+
+    # Update the context with button information
+    kwargs.update(
+        {
+            "workflow": workflow,
+            "task": task,
+            "form": form,
+            "signal_buttons": signal_buttons,
+        }
+    )
+
     return render_to_string(
         "user_task_form.html",
         context=kwargs,

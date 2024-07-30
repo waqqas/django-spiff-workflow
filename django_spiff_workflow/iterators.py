@@ -2,12 +2,14 @@ import json
 import os
 from typing import Iterable, Iterator, Optional
 from uuid import UUID
-
+from SpiffWorkflow.bpmn.specs.control import BoundaryEventSplit
 from django.conf import settings
 from django.template import Context, Template
 from SpiffWorkflow.bpmn.workflow import BpmnWorkflow
 from SpiffWorkflow.spiff.specs.defaults import ManualTask, ScriptTask, UserTask
 from SpiffWorkflow.spiff.specs.spiff_task import SpiffBpmnTask
+from SpiffWorkflow.bpmn.specs.mixins.events.intermediate_event import BoundaryEvent
+from SpiffWorkflow.bpmn.specs.event_definitions import SignalEventDefinition
 
 
 class Task:
@@ -45,6 +47,49 @@ class Task:
                 )
             )
         )
+
+    @property
+    def signal_boundary_events(self):
+        events = []
+        task_spec = self.task.task_spec
+
+        # Check if task_spec has inputs attribute containing BoundaryEventSplit
+        if hasattr(task_spec, "inputs"):
+            inputs = getattr(task_spec, "inputs", [])
+            for input_item in inputs:
+                if isinstance(input_item, BoundaryEventSplit):
+                    # Check all attributes of BoundaryEventSplit for potential boundary events
+                    for attr in dir(input_item):
+                        if not attr.startswith("_"):
+                            value = getattr(input_item, attr)
+                            if isinstance(value, list) or isinstance(value, dict):
+                                if isinstance(value, list):
+                                    for item in value:
+                                        if isinstance(item, BoundaryEvent):
+                                            if hasattr(
+                                                item, "event_definition"
+                                            ) and isinstance(
+                                                item.event_definition,
+                                                SignalEventDefinition,
+                                            ):
+                                                signal_event = item.event_definition
+                                                signal_ref = (
+                                                    signal_event.name
+                                                )  # Adjust this line based on actual attribute
+                                                button_label = item.extensions.get(
+                                                    "signalButtonLabel"
+                                                )
+                                                if (
+                                                    button_label
+                                                ):  # Only include if button label is present
+                                                    event = {
+                                                        "signal": signal_ref,
+                                                        "button_label": button_label,
+                                                        "task_id": self.id,  # Include task ID
+                                                    }
+                                                    events.append(event)
+
+        return events
 
     @property
     def is_ready(self) -> bool:
