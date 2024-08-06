@@ -1,5 +1,5 @@
 from typing import List, Optional
-
+from django.utils import timezone
 from django import template
 from django.template.loader import render_to_string
 from markdown import Markdown
@@ -24,21 +24,58 @@ def markdown(value, extensions=["markdown.extensions.fenced_code"]):
 
 @register.simple_tag(takes_context=True)
 def user_task_form(context, workflow, task, form, **kwargs):
-    # Get signal boundary events with button labels
     signal_buttons = task.signal_boundary_events
 
-    # Log or print the task data for debugging
+    # Initialize the timer active flag
+    task_has_active_timer = False
+
+    # Get timer boundary events from the task
+    timer_boundary_events = task.timer_boundary_events
+
+    # Determine which timer value to use
+    timer_value_warehouse = None
+    timer_start_time = None
+
+    for event in timer_boundary_events:
+        if event["type"] == "timer":
+            # Determine which timer expression to use, if multiple are present
+            # Here, we prioritize 'timer_value_warehouse', but adjust as needed
+            if event["expression"] == "timer_value_warehouse":
+                timer_value_warehouse = task.data.get(event["expression"])
+            elif (
+                event["expression"] == "timer_value_sasd" and not timer_value_warehouse
+            ):
+                timer_value_warehouse = task.data.get(event["expression"])
+
+            task_has_active_timer = True
+            if timer_start_time is None:
+                # Initialize the timer start time if it's not already set
+                timer_start_time = int(timezone.now().timestamp())
+                task.data["timer_start_time"] = timer_start_time
+                task.data_modified = True  # Mark data as modified
+            break
+
+    # Reset timer state for non-timer tasks
+    if not task_has_active_timer:
+        task.data.pop("timer_start_time", None)  # Ensure no lingering timer start time
+
+    # Debugging output to verify task conditions
     print(
-        f"Task ID: {task.id}, Task Name: {task.spec_name}, signal_buttons: {signal_buttons}"
+        f"Task ID: {task.id}, Task Name: {task.spec_name}, signal_buttons: {signal_buttons}, "
+        f"timer_boundary_events: {timer_boundary_events}, timer_value_warehouse: {timer_value_warehouse}, "
+        f"timer_start_time: {timer_start_time}, task_has_active_timer: {task_has_active_timer}"
     )
 
-    # Update the context with button information
+    # Update context with necessary data
     kwargs.update(
         {
             "workflow": workflow,
             "task": task,
             "form": form,
             "signal_buttons": signal_buttons,
+            "task_has_active_timer": task_has_active_timer,
+            "timer_start_time": timer_start_time,
+            "timer_value_warehouse": timer_value_warehouse,
         }
     )
 
