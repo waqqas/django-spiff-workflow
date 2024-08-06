@@ -9,7 +9,10 @@ from SpiffWorkflow.bpmn.workflow import BpmnWorkflow
 from SpiffWorkflow.spiff.specs.defaults import ManualTask, ScriptTask, UserTask
 from SpiffWorkflow.spiff.specs.spiff_task import SpiffBpmnTask
 from SpiffWorkflow.bpmn.specs.mixins.events.intermediate_event import BoundaryEvent
-from SpiffWorkflow.bpmn.specs.event_definitions import SignalEventDefinition
+from SpiffWorkflow.bpmn.specs.event_definitions import (
+    SignalEventDefinition,
+    DurationTimerEventDefinition,
+)
 
 
 class Task:
@@ -90,6 +93,47 @@ class Task:
                                                     events.append(event)
 
         return events
+
+    @property
+    def timer_boundary_events(self):
+        timer_events = []
+        task_spec = self.task.task_spec
+
+        # Check if task_spec has inputs attribute containing BoundaryEventSplit
+        if hasattr(task_spec, "inputs"):
+            inputs = getattr(task_spec, "inputs", [])
+            for input_item in inputs:
+                if isinstance(input_item, BoundaryEventSplit):
+                    # Check all attributes of BoundaryEventSplit for potential boundary events
+                    for attr in dir(input_item):
+                        if not attr.startswith("_"):
+                            value = getattr(input_item, attr)
+                            if isinstance(value, list) or isinstance(value, dict):
+                                if isinstance(value, list):
+                                    for item in value:
+                                        if isinstance(item, BoundaryEvent):
+                                            # Check for DurationTimerEventDefinition
+                                            if hasattr(
+                                                item, "event_definition"
+                                            ) and isinstance(
+                                                item.event_definition,
+                                                DurationTimerEventDefinition,
+                                            ):
+                                                timer_event = item.event_definition
+                                                timer_expression = (
+                                                    timer_event.expression
+                                                )  # Extract the expression attribute
+                                                if (
+                                                    timer_expression
+                                                ):  # Only include if timer expression is present
+                                                    event = {
+                                                        "type": "timer",
+                                                        "expression": timer_expression,
+                                                        "task_id": self.id,  # Include task ID
+                                                    }
+                                                    timer_events.append(event)
+
+        return timer_events
 
     @property
     def is_ready(self) -> bool:
