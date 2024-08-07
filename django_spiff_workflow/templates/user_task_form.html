@@ -35,7 +35,8 @@
         {% for field in form %}
         <div class="col-md-4 mb-3">
           <div class="form-group">
-            {{ field|as_crispy_field }} {% if field.errors %}
+            {{ field|as_crispy_field }}
+            {% if field.errors %}
             <div class="field-errors">
               {{ field.errors }}
             </div>
@@ -123,6 +124,17 @@
 {% endif %}
 
 <script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const socket = new WebSocket('ws://' + window.location.host + '/notifications/');
+
+    socket.onmessage = function(event) {
+      const data = JSON.parse(event.data);
+      if (data.type === 'tag_added') {
+        console.log(data.message); 
+      }
+    };
+  });
+
   function fireSignal(buttonLabel, workflowId) {
     const url = "{% url 'workflow:trigger_signal' %}";
     const csrfToken = '{{ csrf_token }}';
