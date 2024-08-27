@@ -1,14 +1,15 @@
 {% load crispy_forms_tags %}
 {% load static %}
 {% block extrastyle %}
-<link
+<!-- <link
   rel="stylesheet"
   href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
-/>
+/> -->
+<link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
 <link
   rel="stylesheet"
   type="text/css"
-  href="{% static 'css/user_task_form.css' %}"
+  href="{ % static 'css/user_task_form.css' % }"
 />
 {% endblock extrastyle %}
 
@@ -178,3 +179,5 @@
       });
   }
 </script>
+
+<script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
