@@ -1,34 +1,15 @@
 {% load crispy_forms_tags %}
 {% load static %}
 {% block extrastyle %}
-<!-- <link
-  rel="stylesheet"
-  href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
-/> -->
 <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
-<link
-  rel="stylesheet"
-  type="text/css"
-  href="{ % static 'css/user_task_form.css' % }"
-/>
+<link rel="stylesheet" type="text/css" href="{ % static 'css/user_task_form.css' % }"/>
 {% endblock extrastyle %}
 
 <div class="print-content">
-  <button
-    type="button"
-    class="btn btn-secondary"
-    onclick="window.print()"
-  >
-    Print Form
-  </button>
+  <button type="button" class="btn btn-secondary" onclick="window.print()">Print Form</button>
 </div>
 
-<form
-  id="taskForm"
-  method="post"
-  action="{% url 'workflow:run' workflow.id task.id %}"
-  class="needs-validation"
->
+<form id="taskForm" method="post" action="{% url 'workflow:run' workflow.id task.id %}" class="needs-validation">
   {% csrf_token %}
   <div class="card">
     <div class="card-body">
@@ -47,14 +28,10 @@
         {% endfor %}
       </div>
       <div class="button-container">
-        <button type="submit" class="btn btn-danger" onclick="resetTimer()">Submit</button>
+        <button type="submit" class="btn btn-danger">Submit</button>
         {% for event in signal_buttons %}
         {% if event.task_id == task.id %}
-        <button
-          type="button"
-          class="btn btn-primary"
-          onclick="fireSignal('{{ event.button_label }}', '{{ workflow.id }}')"
-        >
+        <button type="button" class="btn btn-primary" onclick="fireSignal('{{ event.button_label }}', '{{ workflow.id }}')">
           {{ event.button_label }}
         </button>
         {% endif %}
@@ -69,13 +46,51 @@
 <div id="countdown" class="alert alert-info mt-3"></div>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const timerDurationISO = "{{ timer_value_warehouse }}";
+    document.addEventListener("DOMContentLoaded", function () {
+    const timerValueWarehouse = "{{ timer_value_warehouse }}";
+    const timerValueReceipt = "{{ timer_value_receipt }}";
+    const timerValueSasd = "{{ timer_value_sasd }}";
+    const timerValueSasdReceipt="{{timer_value_sasd_receipt}}"                
+
+    // Log the raw values for better debugging
+    console.log("Raw Timer Value Warehouse:", timerValueWarehouse);
+    console.log("Raw Timer Value Receipt:", timerValueReceipt);
+    console.log("Raw Timer Value SASD:", timerValueSasd);
+
+    // Explicitly check and set the timerDurationISO
+    let timerDurationISO = null;
+
+    if (timerValueWarehouse && timerValueWarehouse !== "None") {
+      timerDurationISO = timerValueWarehouse;
+    } else if (timerValueReceipt && timerValueReceipt !== "None") {
+      timerDurationISO = timerValueReceipt;
+    } else if (timerValueSasd && timerValueSasd !== "None") {
+      timerDurationISO = timerValueSasd;
+    } else if (timerValueSasdReceipt && timerValueSasdReceipt !== "None") {
+      timerDurationISO = timerValueSasdReceipt;
+    } 
+    
+
+    // Log the selected timer duration ISO
+    console.log("Selected Timer Duration ISO:", timerDurationISO);
+
+    // Ensure timerDurationISO is valid
+    if (!timerDurationISO || timerDurationISO === 'None') {
+      console.error("No valid timer value provided.");
+      return;
+    }
 
     // Function to parse ISO 8601 duration string into total seconds
     function parseISODuration(isoDuration) {
       const regex = /P(?:(\d+)D)?T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/;
       const matches = isoDuration.match(regex);
+
+      // Check if the match was successful
+      if (!matches) {
+        console.error("Invalid ISO duration format:", isoDuration);
+        return 0; // Fallback to 0 seconds
+      }
+
       const days = parseInt(matches[1] || 0, 10);
       const hours = parseInt(matches[2] || 0, 10);
       const minutes = parseInt(matches[3] || 0, 10);
@@ -95,6 +110,9 @@
       // Use server-provided start time if not in localStorage
       timerStartTime = "{{ timer_start_time }}"; 
       localStorage.setItem(timerKey, timerStartTime);
+    } else {
+      // If already stored, log that it's using the stored value
+      console.log("Using stored timer start time:", timerStartTime);
     }
 
     timerStartTime = parseInt(timerStartTime);
@@ -116,11 +134,8 @@
     updateCountdown();
     setInterval(updateCountdown, 1000);
 
-    // Clear local storage for this task's timer on form submit
-    function resetTimer() {
-      localStorage.removeItem(timerKey); // Remove timer start time from local storage
-    }
-  });
+    // No need to reset localStorage on submit as we are preserving the start time
+});
 </script>
 {% endif %}
 
@@ -164,19 +179,19 @@
       },
       body: JSON.stringify(requestData),
     })
-      .then((response) => {
-        if (response.ok) {
-          document.getElementById('taskForm').submit();
-        } else {
-          response.json().then((data) => {
-            alert('Error sending signal: ' + data.message);
-          });
-        }
-      })
-      .catch((error) => {
-        console.error('Error:', error);
-        alert('Error sending signal.');
-      });
+    .then((response) => {
+      if (response.ok) {
+        document.getElementById('taskForm').submit();
+      } else {
+        response.json().then((data) => {
+          alert('Error sending signal: ' + data.message);
+        });
+      }
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+      alert('Error sending signal.');
+    });
   }
 </script>
 
