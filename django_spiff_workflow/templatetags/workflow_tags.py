@@ -32,20 +32,24 @@ def user_task_form(context, workflow, task, form, **kwargs):
     # Get timer boundary events from the task
     timer_boundary_events = task.timer_boundary_events
 
-    # Determine which timer value to use
+    # Initialize timer values
     timer_value_warehouse = None
+    timer_value_receipt = None
+    timer_value_sasd = None  # Keep this as it was initially present
     timer_start_time = None
+    timer_value_sasd_receipt=None
 
     for event in timer_boundary_events:
         if event["type"] == "timer":
-            # Determine which timer expression to use, if multiple are present
-            # Here, we prioritize 'timer_value_warehouse', but adjust as needed
+            # Determine which timer expression to use
             if event["expression"] == "timer_value_warehouse":
                 timer_value_warehouse = task.data.get(event["expression"])
-            elif (
-                event["expression"] == "timer_value_sasd" and not timer_value_warehouse
-            ):
-                timer_value_warehouse = task.data.get(event["expression"])
+            elif event["expression"] == "timer_value_receipt":
+                timer_value_receipt = task.data.get(event["expression"])
+            elif event["expression"] == "timer_value_sasd":
+                timer_value_sasd = task.data.get(event["expression"])
+            elif event["expression"] == "timer_value_sasd_receipt":
+                timer_value_sasd_receipt = task.data.get(event["expression"])
 
             task_has_active_timer = True
             if timer_start_time is None:
@@ -63,6 +67,7 @@ def user_task_form(context, workflow, task, form, **kwargs):
     print(
         f"Task ID: {task.id}, Task Name: {task.spec_name}, signal_buttons: {signal_buttons}, "
         f"timer_boundary_events: {timer_boundary_events}, timer_value_warehouse: {timer_value_warehouse}, "
+        f"timer_value_receipt: {timer_value_receipt}, timer_value_sasd: {timer_value_sasd}, "
         f"timer_start_time: {timer_start_time}, task_has_active_timer: {task_has_active_timer}"
     )
 
@@ -76,6 +81,9 @@ def user_task_form(context, workflow, task, form, **kwargs):
             "task_has_active_timer": task_has_active_timer,
             "timer_start_time": timer_start_time,
             "timer_value_warehouse": timer_value_warehouse,
+            "timer_value_receipt": timer_value_receipt,  # Add this to context
+            "timer_value_sasd": timer_value_sasd,  # Add this to context
+            "timer_value_sasd_receipt": timer_value_sasd_receipt,  # Add this to context
         }
     )
 
@@ -84,7 +92,6 @@ def user_task_form(context, workflow, task, form, **kwargs):
         context=kwargs,
         request=context["request"],
     )
-
 
 @register.simple_tag(takes_context=True)
 def manual_task_form(context, **kwargs):
