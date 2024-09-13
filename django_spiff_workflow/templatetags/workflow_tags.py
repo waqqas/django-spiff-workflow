@@ -37,7 +37,9 @@ def user_task_form(context, workflow, task, form, **kwargs):
     timer_value_receipt = None
     timer_value_sasd = None  # Keep this as it was initially present
     timer_start_time = None
-    timer_value_sasd_receipt=None
+    timer_value_sasd_receipt = None
+    timer_value_warehouse_repair = None
+    timer_value_sasd_repair = None
 
     for event in timer_boundary_events:
         if event["type"] == "timer":
@@ -50,6 +52,10 @@ def user_task_form(context, workflow, task, form, **kwargs):
                 timer_value_sasd = task.data.get(event["expression"])
             elif event["expression"] == "timer_value_sasd_receipt":
                 timer_value_sasd_receipt = task.data.get(event["expression"])
+            elif event["expression"] == "timer_value_warehouse_repair":
+                timer_value_warehouse_repair = task.data.get(event["expression"])
+            elif event["expression"] == "timer_value_sasd_repair":
+                timer_value_sasd_repair = task.data.get(event["expression"])
 
             task_has_active_timer = True
             if timer_start_time is None:
@@ -84,6 +90,8 @@ def user_task_form(context, workflow, task, form, **kwargs):
             "timer_value_receipt": timer_value_receipt,  # Add this to context
             "timer_value_sasd": timer_value_sasd,  # Add this to context
             "timer_value_sasd_receipt": timer_value_sasd_receipt,  # Add this to context
+            "timer_value_warehouse_repair": timer_value_warehouse_repair,
+            "timer_value_sasd_repair": timer_value_sasd_repair,
         }
     )
 
@@ -92,6 +100,7 @@ def user_task_form(context, workflow, task, form, **kwargs):
         context=kwargs,
         request=context["request"],
     )
+
 
 @register.simple_tag(takes_context=True)
 def manual_task_form(context, **kwargs):
