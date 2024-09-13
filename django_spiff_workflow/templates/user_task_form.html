@@ -50,15 +50,20 @@
     const timerValueWarehouse = "{{ timer_value_warehouse }}";
     const timerValueReceipt = "{{ timer_value_receipt }}";
     const timerValueSasd = "{{ timer_value_sasd }}";
-    const timerValueSasdReceipt="{{timer_value_sasd_receipt}}"                
+    const timerValueSasdReceipt = "{{ timer_value_sasd_receipt }}";
+    const timerValueWarehouseRepair = "{{ timer_value_warehouse_repair }}"; // New variable
+    const timerValueSasdRepair = "{{ timer_value_sasd_repair }}"; // New variable
 
     // Log the raw values for better debugging
     console.log("Raw Timer Value Warehouse:", timerValueWarehouse);
     console.log("Raw Timer Value Receipt:", timerValueReceipt);
     console.log("Raw Timer Value SASD:", timerValueSasd);
+    console.log("Raw Timer Value Warehouse Repair:", timerValueWarehouseRepair); // New log
+    console.log("Raw Timer Value SASD Repair:", timerValueSasdRepair); // New log
 
     // Explicitly check and set the timerDurationISO
     let timerDurationISO = null;
+
 
     if (timerValueWarehouse && timerValueWarehouse !== "None") {
       timerDurationISO = timerValueWarehouse;
@@ -68,7 +73,11 @@
       timerDurationISO = timerValueSasd;
     } else if (timerValueSasdReceipt && timerValueSasdReceipt !== "None") {
       timerDurationISO = timerValueSasdReceipt;
-    } 
+    } else if (timerValueWarehouseRepair && timerValueWarehouseRepair !== "None") { // New condition
+      timerDurationISO = timerValueWarehouseRepair;
+    } else if (timerValueSasdRepair && timerValueSasdRepair !== "None") { // New condition
+      timerDurationISO = timerValueSasdRepair;
+    }
     
 
     // Log the selected timer duration ISO
