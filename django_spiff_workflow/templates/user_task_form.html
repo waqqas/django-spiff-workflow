@@ -40,111 +40,29 @@
     </div>
   </div>
 </form>
-
 {% if task_has_active_timer %}
 <!-- Countdown Timer Display -->
 <div id="countdown" class="alert alert-info mt-3"></div>
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-    const timerValueWarehouse = "{{ timer_value_warehouse }}";
-    const timerValueReceipt = "{{ timer_value_receipt }}";
-    const timerValueSasd = "{{ timer_value_sasd }}";
-    const timerValueSasdReceipt = "{{ timer_value_sasd_receipt }}";
-    const timerValueWarehouseRepair = "{{ timer_value_warehouse_repair }}"; // New variable
-    const timerValueSasdRepair = "{{ timer_value_sasd_repair }}"; // New variable
+        let remainingTime = {{ remaining_time }};  // Remaining time in seconds from the backend
 
-    // Log the raw values for better debugging
-    console.log("Raw Timer Value Warehouse:", timerValueWarehouse);
-    console.log("Raw Timer Value Receipt:", timerValueReceipt);
-    console.log("Raw Timer Value SASD:", timerValueSasd);
-    console.log("Raw Timer Value Warehouse Repair:", timerValueWarehouseRepair); // New log
-    console.log("Raw Timer Value SASD Repair:", timerValueSasdRepair); // New log
+        function updateCountdown() {
+            if (remainingTime <= 0) {
+                document.getElementById("countdown").innerText = "Timer expired!";
+                return;
+            }
 
-    // Explicitly check and set the timerDurationISO
-    let timerDurationISO = null;
+            const minutes = Math.floor(remainingTime / 60);
+            const seconds = remainingTime % 60;
+            document.getElementById("countdown").innerText = `${minutes}m ${seconds}s remaining`;
+            remainingTime--;
+        }
 
-
-    if (timerValueWarehouse && timerValueWarehouse !== "None") {
-      timerDurationISO = timerValueWarehouse;
-    } else if (timerValueReceipt && timerValueReceipt !== "None") {
-      timerDurationISO = timerValueReceipt;
-    } else if (timerValueSasd && timerValueSasd !== "None") {
-      timerDurationISO = timerValueSasd;
-    } else if (timerValueSasdReceipt && timerValueSasdReceipt !== "None") {
-      timerDurationISO = timerValueSasdReceipt;
-    } else if (timerValueWarehouseRepair && timerValueWarehouseRepair !== "None") { // New condition
-      timerDurationISO = timerValueWarehouseRepair;
-    } else if (timerValueSasdRepair && timerValueSasdRepair !== "None") { // New condition
-      timerDurationISO = timerValueSasdRepair;
-    }
-    
-
-    // Log the selected timer duration ISO
-    console.log("Selected Timer Duration ISO:", timerDurationISO);
-
-    // Ensure timerDurationISO is valid
-    if (!timerDurationISO || timerDurationISO === 'None') {
-      console.error("No valid timer value provided.");
-      return;
-    }
-
-    // Function to parse ISO 8601 duration string into total seconds
-    function parseISODuration(isoDuration) {
-      const regex = /P(?:(\d+)D)?T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/;
-      const matches = isoDuration.match(regex);
-
-      // Check if the match was successful
-      if (!matches) {
-        console.error("Invalid ISO duration format:", isoDuration);
-        return 0; // Fallback to 0 seconds
-      }
-
-      const days = parseInt(matches[1] || 0, 10);
-      const hours = parseInt(matches[2] || 0, 10);
-      const minutes = parseInt(matches[3] || 0, 10);
-      const seconds = parseInt(matches[4] || 0, 10);
-      return ((days * 24 + hours) * 60 + minutes) * 60 + seconds;
-    }
-
-    const timerDurationSeconds = parseISODuration(timerDurationISO);
-
-    // Use task-specific localStorage key
-    const taskId = "{{ task.id }}";
-    const timerKey = `timer_start_time_${taskId}`;
-
-    // Check if timer_start_time is stored in localStorage
-    let timerStartTime = localStorage.getItem(timerKey);
-    if (!timerStartTime) {
-      // Use server-provided start time if not in localStorage
-      timerStartTime = "{{ timer_start_time }}"; 
-      localStorage.setItem(timerKey, timerStartTime);
-    } else {
-      // If already stored, log that it's using the stored value
-      console.log("Using stored timer start time:", timerStartTime);
-    }
-
-    timerStartTime = parseInt(timerStartTime);
-
-    function updateCountdown() {
-      const now = Math.floor(Date.now() / 1000);
-      const elapsed = now - timerStartTime;
-      const remainingTime = timerDurationSeconds - elapsed;
-
-      if (remainingTime <= 0) {
-        document.getElementById("countdown").innerText = "Timer expired!";
-      } else {
-        const minutes = Math.floor(remainingTime / 60);
-        const seconds = remainingTime % 60;
-        document.getElementById("countdown").innerText = `${minutes}m ${seconds}s remaining`;
-      }
-    }
-
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
-
-    // No need to reset localStorage on submit as we are preserving the start time
-});
+        updateCountdown();
+        setInterval(updateCountdown, 1000);  // Update every second
+    });
 </script>
 {% endif %}
 
