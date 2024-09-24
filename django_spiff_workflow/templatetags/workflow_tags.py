@@ -3,9 +3,10 @@ from django.utils import timezone
 from django import template
 from django.template.loader import render_to_string
 from markdown import Markdown
-
+from workflow.models import Timer
 from django_spiff_workflow.iterators import Task
 from django_spiff_workflow.models import WorkflowBase
+import re
 
 register = template.Library()
 
@@ -21,86 +22,78 @@ def markdown(value, extensions=["markdown.extensions.fenced_code"]):
     md = Markdown(extensions=extensions)
     return md.convert(value)
 
+def sanitize_iso8601_duration(iso_duration):
+    """
+    Sanitize and ensure the ISO 8601 duration format is correct.
+    Removes duplicate 'PT' prefixes if accidentally added.
+    """
+    iso_duration = iso_duration.replace('PTPT', 'PT')  # Remove duplicated 'PT'
+    return iso_duration
+
+def decode_iso8601_duration(iso_duration):
+    """
+    A simple ISO 8601 duration decoder for PTnHnMnS format.
+    Decodes into total seconds.
+    """
+    pattern = re.compile(r'P(?:(?P<days>\d+)D)?T(?:(?P<hours>\d+)H)?(?:(?P<minutes>\d+)M)?(?:(?P<seconds>\d+)S)?')
+    match = pattern.fullmatch(iso_duration)
+    
+    if not match:
+        raise ValueError(f"Invalid ISO 8601 duration format: {iso_duration}")
+    
+    time_params = match.groupdict()
+    total_seconds = 0
+
+    if time_params['days']:
+        total_seconds += int(time_params['days']) * 86400  # 1 day = 86400 seconds
+    if time_params['hours']:
+        total_seconds += int(time_params['hours']) * 3600  # 1 hour = 3600 seconds
+    if time_params['minutes']:
+        total_seconds += int(time_params['minutes']) * 60   # 1 minute = 60 seconds
+    if time_params['seconds']:
+        total_seconds += int(time_params['seconds'])        # seconds
+
+    return total_seconds
 
 @register.simple_tag(takes_context=True)
 def user_task_form(context, workflow, task, form, **kwargs):
     signal_buttons = task.signal_boundary_events
-
-    # Initialize the timer active flag
     task_has_active_timer = False
 
-    # Get timer boundary events from the task
-    timer_boundary_events = task.timer_boundary_events
+    # Fetch the timer from the database
+    timer = Timer.objects.filter(workflow=workflow.id).first()
 
-    # Initialize timer values
-    timer_value_warehouse = None
-    timer_value_receipt = None
-    timer_value_sasd = None  # Keep this as it was initially present
-    timer_start_time = None
-    timer_value_sasd_receipt = None
-    timer_value_warehouse_repair = None
-    timer_value_sasd_repair = None
+    timer_value = None
+    occurred_at = None
+    remaining_time = None
 
-    for event in timer_boundary_events:
-        if event["type"] == "timer":
-            # Determine which timer expression to use
-            if event["expression"] == "timer_value_warehouse":
-                timer_value_warehouse = task.data.get(event["expression"])
-            elif event["expression"] == "timer_value_receipt":
-                timer_value_receipt = task.data.get(event["expression"])
-            elif event["expression"] == "timer_value_sasd":
-                timer_value_sasd = task.data.get(event["expression"])
-            elif event["expression"] == "timer_value_sasd_receipt":
-                timer_value_sasd_receipt = task.data.get(event["expression"])
-            elif event["expression"] == "timer_value_warehouse_repair":
-                timer_value_warehouse_repair = task.data.get(event["expression"])
-            elif event["expression"] == "timer_value_sasd_repair":
-                timer_value_sasd_repair = task.data.get(event["expression"])
+    if timer:
+        timer_value = timer.timer_value  # ISO 8601 string (e.g., 'PT1H')
+        occurred_at = timer.occurred_at  # Timestamp of when the timer was set
 
-            task_has_active_timer = True
-            if timer_start_time is None:
-                # Initialize the timer start time if it's not already set
-                timer_start_time = int(timezone.now().timestamp())
-                task.data["timer_start_time"] = timer_start_time
-                task.data_modified = True  # Mark data as modified
-            break
+        # Calculate the time elapsed since the timer was set
+        now = timezone.now()
+        elapsed_time = (now - occurred_at).total_seconds()
 
-    # Reset timer state for non-timer tasks
-    if not task_has_active_timer:
-        task.data.pop("timer_start_time", None)  # Ensure no lingering timer start time
+        # Decode the ISO 8601 duration into total seconds
+        timer_duration_seconds = decode_iso8601_duration(timer_value)
 
-    # Debugging output to verify task conditions
-    print(
-        f"Task ID: {task.id}, Task Name: {task.spec_name}, signal_buttons: {signal_buttons}, "
-        f"timer_boundary_events: {timer_boundary_events}, timer_value_warehouse: {timer_value_warehouse}, "
-        f"timer_value_receipt: {timer_value_receipt}, timer_value_sasd: {timer_value_sasd}, "
-        f"timer_start_time: {timer_start_time}, task_has_active_timer: {task_has_active_timer}"
-    )
+        # Calculate remaining time in seconds
+        remaining_time = max(0, timer_duration_seconds - elapsed_time)
 
-    # Update context with necessary data
-    kwargs.update(
-        {
-            "workflow": workflow,
-            "task": task,
-            "form": form,
-            "signal_buttons": signal_buttons,
-            "task_has_active_timer": task_has_active_timer,
-            "timer_start_time": timer_start_time,
-            "timer_value_warehouse": timer_value_warehouse,
-            "timer_value_receipt": timer_value_receipt,  # Add this to context
-            "timer_value_sasd": timer_value_sasd,  # Add this to context
-            "timer_value_sasd_receipt": timer_value_sasd_receipt,  # Add this to context
-            "timer_value_warehouse_repair": timer_value_warehouse_repair,
-            "timer_value_sasd_repair": timer_value_sasd_repair,
-        }
-    )
+        task_has_active_timer = True
 
-    return render_to_string(
-        "user_task_form.html",
-        context=kwargs,
-        request=context["request"],
-    )
+    # Add to context
+    kwargs.update({
+        'workflow': workflow,
+        'task': task,
+        'form': form,
+        'signal_buttons': signal_buttons,
+        'task_has_active_timer': task_has_active_timer,
+        'remaining_time': int(remaining_time) if remaining_time else None,  # Remaining time in seconds
+    })
 
+    return render_to_string("user_task_form.html", context=kwargs, request=context["request"])
 
 @register.simple_tag(takes_context=True)
 def manual_task_form(context, **kwargs):
