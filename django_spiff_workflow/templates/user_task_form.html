@@ -9,7 +9,7 @@
   <button type="button" class="btn btn-secondary" onclick="window.print()">Print Form</button>
 </div>
 
-<form id="taskForm" method="post" action="{% url 'workflow:run' workflow.id task.id %}" class="needs-validation">
+<form id="taskForm" method="post" action="{% url 'workflow:run' workflow.id task.id %}" class="needs-validation" enctype="multipart/form-data">
   {% csrf_token %}
   <div class="card">
     <div class="card-body">

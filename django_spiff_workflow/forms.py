@@ -31,6 +31,8 @@ class UserTaskForm(forms.Form):
             field = forms.DecimalField(**field_kwargs)
         elif field_type == "duration":
             field = forms.DurationField(**field_kwargs)
+        elif field_type == "file":
+            field = forms.FileField(label="Select a file")
         else:
             field = forms.CharField(**field_kwargs)
 
@@ -92,11 +94,16 @@ class UserTaskForm(forms.Form):
                     ),
                     **field_kwargs
                 )
+            elif prop_data["format"] == "file":
+                # Create file input field
+                field = forms.FileField(label="Select a file")
             else:
                 field = forms.CharField(**field_kwargs)
         else:
             field = forms.CharField(**field_kwargs)
         return field
+
+    # def save(self):
 
     @staticmethod
     def get_field_arguments(prop_name, prop_data) -> Tuple[str, dict]:
