@@ -103,8 +103,6 @@ class UserTaskForm(forms.Form):
             field = forms.CharField(**field_kwargs)
         return field
 
-    # def save(self):
-
     @staticmethod
     def get_field_arguments(prop_name, prop_data) -> Tuple[str, dict]:
         field_type = prop_data["type"]
