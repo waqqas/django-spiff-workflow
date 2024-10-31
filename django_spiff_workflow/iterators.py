@@ -184,9 +184,41 @@ class Task:
 
     def __str__(self):
         return self.description
+    
+    def get_info(self) -> dict:
+        from workflow.models import TaskInfo
+        """Retrieve the lane name, user_id, and workflow_id from the task."""
+        lane = self.task.task_spec.lane if hasattr(self.task.task_spec, "lane") else None
+        user_id = self.task.data.get("user_id") if hasattr(self.task, "data") else None
+        workflow_id = self.task.data.get("workflow_id") if hasattr(self.task, "data") else None
+        
+        # Check if a task with the same lane and workflow already exists
+        if TaskInfo.objects.filter(workflow_id=workflow_id, lane=lane).exists():
+            # If it exists, skip creation and optionally log or return an informative message
+            return {
+                "message": f"Task with lane '{lane}' already exists in workflow '{workflow_id}'.",
+                "lane": lane,
+                "user_id": user_id,
+                "workflow_id": workflow_id,
+            }
+        
+        # Save data to TaskInfo model if it doesn't exist
+        TaskInfo.objects.create(
+            workflow_id=workflow_id,
+            lane=lane,
+            user_id=user_id,
+        )
+        return {
+            "lane": lane,
+            "user_id": user_id,
+            "workflow_id": workflow_id,
+        }
 
     def run(self):
         self.task.run()
+        info = self.get_info()  # Retrieve all task info after running the task
+        print(info)  # Or return info if you want to capture it elsewhere
+        return info 
 
     def set_data(self, data):
         self.task.set_data(**data)
