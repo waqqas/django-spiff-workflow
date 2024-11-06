@@ -108,7 +108,7 @@ def manual_task_form(context, **kwargs):
 def get_ready_tasks(context, workflow: WorkflowBase) -> List[Task]:
     user = context["request"].user
     lane = user.current_group.name if user.current_group else None
-    return workflow.get_ready_tasks(lane)
+    return workflow.get_ready_tasks(lane) if lane else []
 
 
 @register.simple_tag()
